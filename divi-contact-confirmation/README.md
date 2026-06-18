@@ -1,6 +1,6 @@
 # Divi Contact Form — Confirmation Email
 
-**Version:** 1.4.0  
+**Version:** 1.4.1  
 **Author:** [Mohammad Babaei](https://adschi.com)  
 **License:** GPL-2.0-or-later  
 **Requires WordPress:** 6.0+  
