@@ -3,7 +3,7 @@
  * Plugin Name: Divi Contact Form Confirmation Email
  * Plugin URI:  https://adschi.com
  * Description: Sends an automatic confirmation email to users after they submit a Divi contact form. Compatible with Divi 4, Divi 5, and the latest WordPress.
- * Version:     1.5.1
+ * Version:     1.5.2
  * Author:      Mohammad Babaei
  * Author URI:  https://adschi.com
  * License:     GPL-2.0-or-later
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DCC_VERSION', '1.5.1' );
+define( 'DCC_VERSION', '1.5.2' );
 define( 'DCC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DCC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

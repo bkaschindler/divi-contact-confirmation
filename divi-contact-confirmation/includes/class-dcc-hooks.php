@@ -82,17 +82,40 @@ class DCC_Hooks {
 		$script = sprintf(
 			'(function(){
 				var k = %s;
-				function refresh() {
-					if (typeof grecaptcha === "undefined") { return; }
-					grecaptcha.ready(function() {
-						grecaptcha.execute(k, {action:"divi_contact_form"}).then(function(t){ window.dccToken = t; });
+				var _f = window.fetch;
+
+				function getToken() {
+					return new Promise(function(resolve) {
+						if (typeof grecaptcha === "undefined") { resolve(""); return; }
+						grecaptcha.ready(function() {
+							grecaptcha.execute(k, {action:"divi_contact_form"}).then(resolve).catch(function(){ resolve(""); });
+						});
 					});
 				}
-				refresh();
-				setInterval(refresh, 90000);
+
+				/* Pre-warm token on page load */
+				getToken().then(function(t){ window.dccToken = t; });
+				setInterval(function(){ getToken().then(function(t){ window.dccToken = t; }); }, 90000);
+
+				/* Intercept Divi submit button — guarantee a fresh token before XHR fires */
+				document.addEventListener("click", function(e) {
+					var btn = e.target;
+					if (!btn) { return; }
+					var isSubmit = btn.classList && (
+						btn.classList.contains("et_pb_contact_submit") ||
+						(btn.type === "submit" && btn.closest && btn.closest(".et_pb_contact_form_container"))
+					);
+					if (!isSubmit) { return; }
+					if (window.dccToken) { return; } /* token ready — proceed normally */
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					getToken().then(function(t) {
+						window.dccToken = t;
+						btn.click();
+					});
+				}, true);
 
 				/* Fetch API intercept for Divi 5 */
-				var _f = window.fetch;
 				window.fetch = function(url, opts) {
 					if (opts && opts.body) {
 						var b = opts.body;

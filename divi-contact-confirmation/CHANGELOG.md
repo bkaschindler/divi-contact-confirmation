@@ -6,6 +6,22 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.5.2] — 2026-06-26
+
+### Fixed
+- **Legitimate users blocked with "reCAPTCHA token missing"** — the reCAPTCHA token is
+  generated asynchronously; if a user submitted the form before the Promise resolved,
+  `dccToken` was still empty and their submission was rejected.
+  Fix: intercept the Divi submit button click via a capturing `addEventListener`. If the
+  token is not yet ready, the click is cancelled, a fresh token is fetched, and the button
+  is re-clicked automatically — the user sees no delay.
+- Moved XHR prototype patch to `wp_head` at priority 1 (was in footer) so it runs before
+  Divi scripts load and cannot be bypassed by early script caching of XHR references.
+- Replaced background `setInterval` token refresh with a `Promise`-based `getToken()`
+  helper reused by both the pre-warm call and the submit-button intercept.
+
+---
+
 ## [1.5.1] — 2026-06-26
 
 ### Fixed
