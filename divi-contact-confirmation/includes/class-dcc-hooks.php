@@ -97,21 +97,39 @@ class DCC_Hooks {
 					return str + "&dcc_recaptcha_token=" + encodeURIComponent(dccToken);
 				}
 
+				/* XMLHttpRequest intercept — Divi 4 uses XHR directly, not jQuery AJAX */
+				(function() {
+					var _open = XMLHttpRequest.prototype.open;
+					var _send = XMLHttpRequest.prototype.send;
+
+					XMLHttpRequest.prototype.open = function(method, url) {
+						this._dccUrl = (typeof url === "string") ? url : "";
+						return _open.apply(this, arguments);
+					};
+
+					XMLHttpRequest.prototype.send = function(body) {
+						if (this._dccUrl.indexOf("admin-ajax.php") !== -1
+							&& typeof body === "string"
+							&& body.indexOf("action=et_pb_contact_form_submit") !== -1) {
+							body = dccInjectString(body);
+						}
+						return _send.call(this, body);
+					};
+				}());
+
 				$(document).ready(function() {
 					dccRefreshToken();
 					setInterval(dccRefreshToken, 90000);
 
-					/* Divi 4 — jQuery AJAX */
+					/* Divi 4 — jQuery AJAX (fallback if jQuery wraps XHR) */
 					$.ajaxPrefilter(function(options) {
 						if (!options.data) { return; }
-						if (typeof options.data === "string") {
-							if (options.data.indexOf("action=et_pb_contact_form_submit") !== -1) {
-								options.data = dccInjectString(options.data);
-							}
-						} else if (typeof options.data === "object") {
-							if (options.data.action === "et_pb_contact_form_submit") {
-								options.data["dcc_recaptcha_token"] = dccToken;
-							}
+						if (typeof options.data === "string"
+							&& options.data.indexOf("action=et_pb_contact_form_submit") !== -1) {
+							options.data = dccInjectString(options.data);
+						} else if (typeof options.data === "object"
+							&& options.data.action === "et_pb_contact_form_submit") {
+							options.data["dcc_recaptcha_token"] = dccToken;
 						}
 					});
 
@@ -125,7 +143,8 @@ class DCC_Hooks {
 									b.set("dcc_recaptcha_token", dccToken);
 									opts.body = b;
 								}
-							} else if (typeof b === "string" && b.indexOf("action=et_pb_contact_form_submit") !== -1) {
+							} else if (typeof b === "string"
+								&& b.indexOf("action=et_pb_contact_form_submit") !== -1) {
 								opts.body = dccInjectString(b);
 							}
 						}
