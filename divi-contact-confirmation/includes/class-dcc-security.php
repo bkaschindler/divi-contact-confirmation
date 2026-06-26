@@ -158,7 +158,7 @@ class DCC_Security {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification
-		$token = isset( $_POST['g-recaptcha-response'] ) ? sanitize_text_field( wp_unslash( $_POST['g-recaptcha-response'] ) ) : '';
+		$token = isset( $_POST['dcc_recaptcha_token'] ) ? sanitize_text_field( wp_unslash( $_POST['dcc_recaptcha_token'] ) ) : '';
 		if ( '' === $token ) {
 			return 'recaptcha_missing';
 		}

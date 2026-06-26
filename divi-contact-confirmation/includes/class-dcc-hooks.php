@@ -94,11 +94,13 @@ class DCC_Hooks {
 					});
 				}
 
-				/* Inject fields into a serialised query string */
+				/* Inject our fields into a serialised query string.
+				   We use dcc_recaptcha_token (not g-recaptcha-response) so we never
+				   overwrite Divi's own reCAPTCHA token, which would break its validation. */
 				function dccInjectString(str) {
 					return str
-						+ "&g-recaptcha-response=" + encodeURIComponent(dccToken)
-						+ "&dcc_nonce="            + encodeURIComponent(dccNonce);
+						+ "&dcc_recaptcha_token=" + encodeURIComponent(dccToken)
+						+ "&dcc_nonce="           + encodeURIComponent(dccNonce);
 				}
 
 				$(document).ready(function() {
@@ -115,8 +117,8 @@ class DCC_Hooks {
 							}
 						} else if (typeof options.data === "object") {
 							if (options.data.action === "et_pb_contact_form_submit") {
-								options.data["g-recaptcha-response"] = dccToken;
-								options.data["dcc_nonce"]            = dccNonce;
+								options.data["dcc_recaptcha_token"] = dccToken;
+								options.data["dcc_nonce"]           = dccNonce;
 							}
 						}
 					});
@@ -128,7 +130,7 @@ class DCC_Hooks {
 							var b = opts.body;
 							if (b instanceof URLSearchParams) {
 								if (b.get("action") === "et_pb_contact_form_submit") {
-									b.set("g-recaptcha-response", dccToken);
+									b.set("dcc_recaptcha_token", dccToken);
 									b.set("dcc_nonce", dccNonce);
 									opts.body = b;
 								}
