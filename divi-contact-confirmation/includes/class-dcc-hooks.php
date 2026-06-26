@@ -79,41 +79,26 @@ class DCC_Hooks {
 			true
 		);
 
+		// Token is fetched immediately when this script runs (footer, right after reCAPTCHA loads).
+		// A real user takes several seconds to fill the form, so the token is always ready.
+		// Bots that POST directly without loading the page have no token and are blocked server-side.
 		$script = sprintf(
 			'(function(){
 				var k = %s;
 				var _f = window.fetch;
 
-				function getToken() {
-					return new Promise(function(resolve) {
-						if (typeof grecaptcha === "undefined") { resolve(""); return; }
-						grecaptcha.ready(function() {
-							grecaptcha.execute(k, {action:"divi_contact_form"}).then(resolve).catch(function(){ resolve(""); });
-						});
+				function refreshToken() {
+					if (typeof grecaptcha === "undefined") { return; }
+					grecaptcha.ready(function() {
+						grecaptcha.execute(k, {action:"divi_contact_form"})
+							.then(function(t){ window.dccToken = t; })
+							.catch(function(){});
 					});
 				}
 
-				/* Pre-warm token on page load */
-				getToken().then(function(t){ window.dccToken = t; });
-				setInterval(function(){ getToken().then(function(t){ window.dccToken = t; }); }, 90000);
-
-				/* Intercept Divi submit button — guarantee a fresh token before XHR fires */
-				document.addEventListener("click", function(e) {
-					var btn = e.target;
-					if (!btn) { return; }
-					var isSubmit = btn.classList && (
-						btn.classList.contains("et_pb_contact_submit") ||
-						(btn.type === "submit" && btn.closest && btn.closest(".et_pb_contact_form_container"))
-					);
-					if (!isSubmit) { return; }
-					if (window.dccToken) { return; } /* token ready — proceed normally */
-					e.preventDefault();
-					e.stopImmediatePropagation();
-					getToken().then(function(t) {
-						window.dccToken = t;
-						btn.click();
-					});
-				}, true);
+				/* Fetch token immediately — no waiting for DOM ready */
+				refreshToken();
+				setInterval(refreshToken, 90000);
 
 				/* Fetch API intercept for Divi 5 */
 				window.fetch = function(url, opts) {
