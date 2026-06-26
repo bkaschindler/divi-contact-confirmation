@@ -67,7 +67,7 @@ class DCC_Hooks {
 		// dccToken lives in global scope so the footer script can write to it.
 		add_action( 'wp_head', function() {
 			echo '<style>.grecaptcha-badge{visibility:hidden!important}</style>' . "\n";
-			echo '<script>window.dccToken="";(function(){var _o=XMLHttpRequest.prototype.open,_s=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(m,u){this._dccU=typeof u==="string"?u:"";return _o.apply(this,arguments);};XMLHttpRequest.prototype.send=function(b){if(this._dccU.indexOf("admin-ajax.php")!==-1&&typeof b==="string"&&b.indexOf("action=et_pb_contact_form_submit")!==-1){b+="&dcc_recaptcha_token="+encodeURIComponent(window.dccToken);}return _s.call(this,b);};}());</script>' . "\n";
+			echo '<script>window.dccToken="";(function(){var _o=XMLHttpRequest.prototype.open,_s=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(m,u){this._dccU=typeof u==="string"?u:"";return _o.apply(this,arguments);};XMLHttpRequest.prototype.send=function(b){if(this._dccU.indexOf("admin-ajax.php")!==-1){if(typeof b==="string"&&b.indexOf("action=et_pb_contact_form_submit")!==-1){b+="&dcc_recaptcha_token="+encodeURIComponent(window.dccToken);}else if(b instanceof FormData&&b.get&&b.get("action")==="et_pb_contact_form_submit"){b.append("dcc_recaptcha_token",window.dccToken);}}return _s.call(this,b);};}());</script>' . "\n";
 		}, 1 );
 
 		// Load reCAPTCHA v3 in footer — sets window.dccToken once library is ready

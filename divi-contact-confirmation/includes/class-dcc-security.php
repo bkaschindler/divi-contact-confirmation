@@ -160,8 +160,11 @@ class DCC_Security {
 		// phpcs:ignore WordPress.Security.NonceVerification
 		$token = isset( $_POST['dcc_recaptcha_token'] ) ? sanitize_text_field( wp_unslash( $_POST['dcc_recaptcha_token'] ) ) : '';
 
+		// Token absent = JS did not run (ad-blocker, slow load, direct POST bot).
+		// Allow through — keyword block and rate limiting cover direct-POST attacks.
+		// Only reject when a token IS present but Google says it is not human.
 		if ( '' === $token ) {
-			return 'recaptcha_missing';
+			return true;
 		}
 
 		$response = wp_remote_post(
